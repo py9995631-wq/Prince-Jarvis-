@@ -28,7 +28,7 @@ jobs:
           gradle-version: "8.9"
 
       - name: Extract Android project
-        run: |
+        run: gradle :app:assembleDebug -Pkotlin.jvm.target.validation.mode=warning
           unzip -q PRINCE_JARVIS_AndroidStudio.zip -d extracted
           ls -la extracted/PRINCE_JARVIS
 
