@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,22 +23,32 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
 
       - name: Extract Android project
-        run: gradle :app:assembleDebug -Pkotlin.jvm.target.validation.mode=warning
+        run: |
           unzip -q PRINCE_JARVIS_AndroidStudio.zip -d extracted
-          ls -la extracted/PRINCE_JARVIS
+          PROJECT_DIR="$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs -r dirname)"
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: ZIP ke andar Android project settings file nahi mili."
+            find extracted -maxdepth 4 -type f
+            exit 1
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Build APK
-        working-directory: extracted/PRINCE_JARVIS
-        run: gradle :app:assembleDebug
+        run: |
+          gradle -p "$PROJECT_DIR" assembleDebug -Pkotlin.jvm.target.validation.mode=warning
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: PRINCE-JARVIS-APK
-          path: extracted/PRINCE_JARVIS/app/build/outputs/apk/debug/app-debug.apk
+          path: extracted/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
