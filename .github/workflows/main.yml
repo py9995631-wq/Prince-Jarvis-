@@ -45,6 +45,10 @@ jobs:
           fi
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
+      - name: Add AndroidX Core dependency
+        run: |
+          printf '\ndependencies {\n    implementation("androidx.core:core-ktx:1.15.0")\n}\n' >> "$PROJECT_DIR/app/build.gradle.kts"
+
       - name: Build APK
         run: |
           gradle -p "$PROJECT_DIR" assembleDebug -Pkotlin.jvm.target.validation.mode=warning
